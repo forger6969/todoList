@@ -27,7 +27,7 @@ let notesObject = {
 
 notesStorage.push(notesObject)
 
-localStorage.setItem(`notes` , JSON.stringify(notesStorage))
+localStorage.setItem(`notes`, JSON.stringify(notesStorage))
 
 
 function renderNotesStorage() {
@@ -63,7 +63,5 @@ function renderNotesStorage() {
         } else {
             checkedBtnElement.innerHTML = ``
         }
-
     });
-
 }
