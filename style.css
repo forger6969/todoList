@@ -91,6 +91,7 @@ body {
 .searchInput.night {
     border: 1px solid white;
     background-color: transparent;
+    color: white;
 }
 
 .createNoteBtn {
