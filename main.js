@@ -1,189 +1,153 @@
-let themeChangeBtn = document.querySelector('.themeChangeBtn')
-let themeSvg = themeChangeBtn.querySelector('img')
-let body = document.querySelector('body')
-let searchInput = document.querySelector('.searchInput')
-let bodyItem = document.querySelector('.bodyItem')
+let notesLocalStorage = JSON.parse(localStorage.getItem(`notes`)) || []
+let notesBoxElement = document.querySelector('.notesBox')
+console.log(notesLocalStorage);
+if (notesLocalStorage.length === 0) {
+    notesBoxElement.innerHTML = `<p class="notesNoneText">Вы еще не создали заметки</p>`
+}
 
-let createNoteBtn = document.querySelector('.createNoteBtn')
-let notesElemntsBox = document.querySelector('.notesBox')
+function changeTheme() {
 
-let localStorageNotes = JSON.parse(localStorage.getItem('notes')) || []
+    let themeChangeElement = document.querySelector(`.themeChangeBtn`)
+    let searchInputElement = document.querySelector(`.searchInput`)
+    let bodyElement = document.querySelector('body')
+    let bodyItemElement = document.querySelector(`.bodyItem`)
+    let noteText = document.querySelectorAll(`.noteText`)
+    console.log(noteText);
 
-function renderNotes() {
-    if (localStorageNotes.length === 0) {
-        console.log('В LocalStorage ничего нет')
+    themeChangeElement.addEventListener(`click`, () => {
+        if (bodyElement.classList.contains(`night`)) {
+            searchInputElement.classList.remove(`night`)
+            bodyElement.classList.remove(`night`)
+            bodyItemElement.classList.remove(`night`)
+            noteText.forEach(text => { text.classList.remove(`night`) })
+
+            themeChangeElement.innerHTML = `<img src="./icons/Vector (26).svg" alt="">`
+        } else {
+            searchInputElement.classList.add(`night`)
+            bodyElement.classList.add(`night`)
+            bodyItemElement.classList.add(`night`)
+            noteText.forEach(text => { text.classList.add(`night`) })
+
+            themeChangeElement.innerHTML = `<img src="./icons/Vector (29).svg" alt="">`
+        }
+    })
+
+}
+
+
+function renderNotesElements() {
+    notesBoxElement.innerHTML = ``
+    let notesLocalStorage = JSON.parse(localStorage.getItem(`notes`)) || []
+
+    notesLocalStorage.forEach((notes, index) => {
+
+        let noteElement = document.createElement(`div`)
+        noteElement.classList = `note`
+        noteElement.innerHTML = `
+                    <div class="noteLeft">
+                            <input class="checkedNote" data-index="${index}" type="checkbox">
+                        <input class="noteText" value="${notes.note}" type="text" disabled>
+                    </div>
+
+                    <div class="renamesBox">
+                        <button class="renameNote"><img src="./icons/Vector (28).svg" alt=""></button>
+                        <button class="deleteNote"><img src="./icons/trash-svgrepo-com 1.svg" alt=""></button>
+                    </div>
+            `
+
+        let noteText = noteElement.querySelector(`.noteText`)
+        if (notes.checked) {
+            let checkedNote = noteElement.querySelector(`.checkedNote`)
+            checkedNote.checked = true
+            noteText.style.color = `#7e7c7c`
+            noteText.style.textDecoration = `line-through`
+        } else {
+            noteText.style.color = `#252525`
+            noteText.style.textDecoration = `none`
+        }
+        notesBoxElement.append(noteElement)
+    });
+
+    notesBtnEvents()
+    changeTheme()
+}
+
+renderNotesElements()
+
+let sendBtnElement = document.querySelector('.sendBtn')
+
+sendBtnElement.addEventListener(`click`, () => {
+
+    let notesLocalStorageSet = JSON.parse(localStorage.getItem(`notes`)) || []
+    let searchInputElement = document.querySelector(`.searchInput`)
+
+    let searchInputElementValue = searchInputElement.value
+    if (searchInputElementValue === '') {
+        alert('Пустой инпут')
         return
     }
 
-    localStorageNotes.forEach((notes, index) => {
-        console.log(notes.noteText)
+    let noteInformation = {
+        note: searchInputElementValue,
+        checked: false
+    }
 
-        let noteBox = document.createElement('div')
-        noteBox.classList = 'note'
+    notesLocalStorageSet.push(noteInformation)
+    localStorage.setItem(`notes`, JSON.stringify(notesLocalStorageSet))
+    renderNotesElements()
+    changeTheme()
+})
 
-        noteBox.innerHTML = `
-            <div class="noteLeft">
-                <button class="checkedNote"></button>
 
-                <div class="noteColumnBox">
-                    <input class="noteItem" value="${notes.noteNum}" type="text" disabled>
-                    <input class="noteText" value="${notes.noteText}" type="text">
-                </div>
-            </div>
+function notesBtnEvents() {
 
-            <div class="renamesBox">
-                <button class="renameNote"><img src="./icons/Vector (28).svg" alt=""></button>
-                <button data-index="${index}" class="deleteNote"><img src="./icons/trash-svgrepo-com 1.svg" alt=""></button>
-            </div>
-        `
+    let allNotes = document.querySelectorAll(`.note`)
+    allNotes.forEach(notes => {
+        let renamesBox = notes.querySelector(`.renamesBox`)
 
-        notesElemntsBox.append(noteBox)
+        notes.addEventListener(`mouseover`, () => renamesBox.classList.add(`active`))
+        notes.addEventListener(`mouseout`, () => renamesBox.classList.remove(`active`))
+
     })
-}
 
-function events() {
-    localStorageNotes.forEach((notes, index) => {
-        let renamesBox = document.querySelector('.note').querySelector('.renamesBox')
-        let checkedNote = document.querySelector('.note').querySelector('.checkedNote')
-        let renameNoteElement = document.querySelector('.note').querySelector('.renameNote')
-        let noteTextElement = document.querySelector('.note').querySelector('.noteText')
-        let noteItemElement = document.querySelector('.note').querySelector('.noteItem')
+    notesBoxElement.addEventListener(`click`, (e) => {
+        console.log(e);
+        if (e.target.classList.contains('checkedNote')) {
+            const notDiv = e.target.closest(`.note`)
+            const noteText = notDiv.querySelector(`.noteText`)
+            const noteIndexGet = e.target.getAttribute(`data-index`)
+            console.log(noteIndexGet);
 
-        noteTextElement.setAttribute('disabled', true)
-        let note = noteBox
-        let checked = false
-
-        noteItemElement.style.textDecoration = notes.checkedBtn ? 'line-through' : 'none'
-        noteItemElement.style.color = notes.checkedBtn ? '#7d7c7c' : '#252525'
-
-        if (notes.checkedBtn) {
-            checkedNote.innerHTML = `<img src="./icons/Rectangle 18.svg" alt="">`
-            checkedNote.classList.add('checked')
-        }
-
-        checkedNote.addEventListener('click', () => {
-            checkedNote.classList.toggle('checked')
-            let isChecked = checkedNote.classList.contains('checked')
-
-            checkedNote.innerHTML = isChecked ? `<img src="./icons/Rectangle 18.svg" alt="">` : ''
-            noteItemElement.style.textDecoration = isChecked ? 'line-through' : 'none'
-            noteItemElement.style.color = isChecked ? '#7d7c7c' : '#252525'
-
-            notes.checkedBtn = isChecked
-            localStorage.setItem('notes', JSON.stringify(localStorageNotes))
-        })
-
-        note.addEventListener('mouseover', () => {
-            renamesBox.classList.add('active')
-        })
-
-        note.addEventListener('mouseout', () => {
-            renamesBox.classList.remove('active')
-        })
-
-        renameNoteElement.addEventListener('click', () => {
-            noteTextElement.removeAttribute('disabled') // делаем доступным
-            noteTextElement.focus()
-            console.log('enter')
-        })
-
-        noteTextElement.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                noteTextElement.setAttribute('disabled', true)
-                notes.noteText = noteTextElement.value
-                localStorage.setItem('notes', JSON.stringify(localStorageNotes))
+            if (e.target.checked === true) {
+                noteText.style.color = `#7e7c7c`
+                noteText.style.textDecoration = `line-through`
+            } else if (e.target.checked === false) {
+                noteText.style.color = `#252525`
+                noteText.style.textDecoration = `none`
             }
-        })
-
-        notesElemntsBox.append(noteBox)
-    })
-
-    renderNotes()
-
-    themeChangeBtn.addEventListener('click', () => {
-        body.classList.toggle('night')
-        searchInput.classList.toggle('night')
-        bodyItem.classList.toggle('night')
-
-        if (body.classList.contains('night')) {
-            themeSvg.src = './icons/Vector (29).svg'
-        } else {
-            themeSvg.src = './icons/Vector (26).svg'
-        }
-    })
-
-    createNoteBtn.addEventListener('click', () => {
-        let noteBox = document.createElement('div')
-        noteBox.classList = 'note'
-
-        noteBox.innerHTML = `
-            <div class="noteLeft">
-                <button class="checkedNote"></button>
-                
-                <div class="noteColumnBox">
-                    <input class="noteItem" value="NOTE#${localStorageNotes.length}" type="text" disabled>
-                    <input class="noteText" value="Enter your note..." type="text" disabled>
-                </div>
-            </div>
-
-            <div class="renamesBox">
-                <button class="renameNote"><img src="./icons/Vector (28).svg" alt=""></button>
-                <button class="deleteNote"><img src="./icons/trash-svgrepo-com 1.svg" alt=""></button>
-            </div>
-        `
-        notesElemntsBox.append(noteBox)
-
-        let renamesBox = noteBox.querySelector('.renamesBox')
-        let checkedNote = noteBox.querySelector('.checkedNote')
-        let renameNoteElement = noteBox.querySelector('.renameNote')
-        let noteTextElement = noteBox.querySelector('.noteText')
-        let noteItemElement = noteBox.querySelector('.noteItem')
-
-        noteTextElement.setAttribute('disabled', true)
-        let note = noteBox
-        let checked = false
-
-        note.addEventListener('mouseover', () => {
-            renamesBox.classList.add('active')
-        })
-
-        note.addEventListener('mouseout', () => {
-            renamesBox.classList.remove('active')
-        })
-
-        checkedNote.addEventListener('click', () => {
-            checkedNote.classList.toggle('checked')
-            let isChecked = checkedNote.classList.contains('checked')
-
-            checkedNote.innerHTML = isChecked ? `<img src="./icons/Rectangle 18.svg" alt="">` : ''
-            noteItemElement.style.textDecoration = isChecked ? 'line-through' : 'none'
-            noteItemElement.style.color = isChecked ? '#7d7c7c' : '#252525'
-
-            notes.checkedBtn = isChecked
-            localStorage.setItem('notes', JSON.stringify(localStorageNotes))
-        })
-
-        renameNoteElement.addEventListener('click', () => {
-            noteTextElement.removeAttribute('disabled') // делаем доступным
-            noteTextElement.focus()
-            console.log('enter')
-        })
-
-        noteTextElement.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                noteTextElement.setAttribute('disabled', true)
-                notes.noteText = noteTextElement.value
-                localStorage.setItem('notes', JSON.stringify(localStorageNotes))
-            }
-        })
-
-        let noteList = {
-            noteNum: noteItemElement.value,
-            noteText: noteTextElement.value,
-            checkedBtn: checked
+            let localStorageCheckedParse = JSON.parse(localStorage.getItem(`notes`)) || []
+            localStorageCheckedParse[noteIndexGet].checked = e.target.checked
+            localStorage.setItem(`notes`, JSON.stringify(localStorageCheckedParse))
+            console.log(localStorageCheckedParse);
         }
 
-        localStorageNotes.push(noteList)
-        localStorage.setItem('notes', JSON.stringify(localStorageNotes))
+        if (e.target.closest(`.deleteNote`)) {
+
+            const noteDiv = e.target.closest(`.note`)
+            const noteIndexElement = noteDiv.querySelector(`.checkedNote`)
+            const noteIndex = +noteIndexElement.getAttribute(`data-index`)
+            console.log(noteIndex);
+
+            let storageDeleteGet = JSON.parse(localStorage.getItem(`notes`)) || []
+
+            console.log("До удаления", storageDeleteGet);
+
+            storageDeleteGet.splice(noteIndex, 1)
+
+            console.log('После удаления', storageDeleteGet);
+
+            localStorage.setItem(`notes`, JSON.stringify(storageDeleteGet))
+            renderNotesElements()
+        }
     })
 }
